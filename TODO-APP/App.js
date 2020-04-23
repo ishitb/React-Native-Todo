@@ -52,10 +52,13 @@ export default class App extends Component {
               <View style={styles.presentTodos}>
                 {this.state.todos.map((todo, index) => {
                   return (
-                    <React.Fragment>
-                      <Text style={styles.todos} key={index}>
-                        {todo}
-                      </Text>
+                    <React.Fragment key={index}>
+                      <View>
+                        <Text style={styles.todos} >
+                          {todo}
+                        </Text>
+                        
+                      </View>
                       {index < this.state.todos.length - 1 ? (
                         <View style={styles.break}></View>
                       ) : null}
