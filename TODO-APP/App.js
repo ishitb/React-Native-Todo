@@ -12,11 +12,28 @@ import image from "./assets/background.jpg";
 export default class App extends Component {
   constructor(props) {
     super(props);
+    this.newTodo = React.createRef();
+    this.handleSubmit = this.handleSubmit.bind(this)
   }
 
   state = {
-    todos: ["One", "Two", "Three"],
+    todos: ["One", "Two", "Three", "Four"],
+    inputVal: ""
   };
+
+  handleSubmit = () => {
+    var newTodo = this.state.inputVal
+    this.setState({
+      todos: [...this.state.todos, newTodo],
+      inputVal: ""
+    })
+  }
+
+  handleChange = e => {
+    this.setState({
+      inputVal: e
+    })
+  }
 
   render() {
     return (
@@ -24,7 +41,14 @@ export default class App extends Component {
         <ImageBackground source={image} style={styles.backg}>
           <View style={styles.mainApp}>
             <View>
-              <TextInput style={styles.input} />
+              <TextInput
+                style={styles.input}
+                placeholder="Add New Todo"
+                // ref={this.newTodo}
+                value={this.state.inputVal}
+                onChangeText={this.handleChange}
+                onSubmitEditing={this.handleSubmit}
+              />
               <View style={styles.presentTodos}>
                 {this.state.todos.map((todo, index) => {
                   return (
