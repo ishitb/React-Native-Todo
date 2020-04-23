@@ -7,6 +7,7 @@ import {
   Dimensions,
   TextInput,
   TouchableOpacity,
+  ScrollView
 } from "react-native";
 import image from "./assets/background.jpg";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
@@ -24,21 +25,48 @@ export default class App extends Component {
         text: "One",
         complete: false,
       },
-      {
-        text: "Two",
-        complete: true,
-      },
-      {
-        text: "Three",
-        complete: false,
-      },
-      {
-        text: "Four",
-        complete: false,
-      },
     ],
     inputVal: "",
+    todosHeight: null
   };
+
+
+  componentDidMount = () => {
+    this.changeHeight(this.state.todos.length)
+  }
+
+  changeHeight = (noOfTodos) => {
+    // console.log(noOfTodos)
+    if(noOfTodos == 1)
+      this.setState({
+        todosHeight: 42.80701700846354
+      })
+    else if(noOfTodos == 2) {
+      this.setState({
+        todosHeight: 85.61403401692708
+      })
+    }
+    else if(noOfTodos == 3) {
+      this.setState({
+        todosHeight: 128.42105102539062
+      })
+    }
+    else if(noOfTodos == 4) {
+      this.setState({
+        todosHeight: 171.22806803385416
+      })
+    }
+    else if(noOfTodos > 4) {
+      this.setState({
+        todosHeight: 200
+      })
+    }
+    else if(noOfTodos == 0) {
+      this.setState({
+        todosHeight: 0
+      })
+    }
+  }
 
   handleSubmit = () => {
     var newTodo = {
@@ -46,9 +74,10 @@ export default class App extends Component {
       complete: false
     }
     this.setState({
-      todos: [...this.state.todos, newTodo],
+      todos: [ newTodo, ...this.state.todos],
       inputVal: "",
     });
+    this.changeHeight(this.state.todos.length + 1)
   };
 
   handleChange = e =>{
@@ -71,72 +100,75 @@ export default class App extends Component {
                 onChangeText={this.handleChange}
                 onSubmitEditing={this.handleSubmit}
               />
-              <View style={styles.presentTodos}>
-                {this.state.todos.map((todo, index) => {
-                  return (
-                    <React.Fragment key={index}>
-                      <View style={styles.list}>
-                        <TouchableOpacity
-                          style={{ flex: 3 }}
-                          onPress={() => {
-                            var todos = this.state.todos;
-                            todos[index].complete = !todos[index].complete;
-                            this.setState({
-                              todos: todos,
-                            });
-                          }}
-                        >
-                          <View style={{ flexDirection: "row" }}>
-                            {todo.complete == true ? (
-                              <Text style={{ padding: 10 }}>
-                                <Ionicons
-                                  name="ios-checkmark-circle-outline"
-                                  size={25}
-                                  color="#888"
-                                />
+              <View style={{ ...styles.presentTodos, height: this.state.todosHeight }}>
+                <ScrollView>
+                  {this.state.todos.map((todo, index) => {
+                    return (
+                      <React.Fragment key={index}>
+                        <View style={styles.list}>
+                          <TouchableOpacity
+                            style={{ flex: 3 }}
+                            onPress={() => {
+                              var todos = this.state.todos;
+                              todos[index].complete = !todos[index].complete;
+                              this.setState({
+                                todos: todos,
+                              });
+                            }}
+                          >
+                            <View style={{ flexDirection: "row" }}>
+                              {todo.complete == true ? (
+                                <Text style={{ padding: 10 }}>
+                                  <Ionicons
+                                    name="ios-checkmark-circle-outline"
+                                    size={25}
+                                    color="#888"
+                                  />
+                                </Text>
+                              ) : null}
+  
+                              <Text
+                                style={
+                                  todo.complete == true
+                                    ? styles.completedTodo
+                                    : styles.todos
+                                }
+                              >
+                                {todo.text}
                               </Text>
-                            ) : null}
-
-                            <Text
-                              style={
-                                todo.complete == true
-                                  ? styles.completedTodo
-                                  : styles.todos
-                              }
-                            >
-                              {todo.text}
+                            </View>
+                          </TouchableOpacity>
+  
+                          <TouchableOpacity
+                            activeOpacity={0.1}
+                            onPress={() => {
+                              this.setState({
+                                todos: [
+                                  ...this.state.todos.filter(
+                                    (todo) =>
+                                      this.state.todos.indexOf(todo) != index
+                                  ),
+                                ],
+                              });
+                              this.changeHeight(this.state.todos.length - 1)
+                            }}
+                          >
+                            <Text style={styles.deleteButton}>
+                              <AntDesign
+                                name="minuscircleo"
+                                size={25}
+                                color="rgb(205, 80, 70)"
+                              />
                             </Text>
-                          </View>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                          activeOpacity={0.1}
-                          onPress={() => {
-                            this.setState({
-                              todos: [
-                                ...this.state.todos.filter(
-                                  (todo) =>
-                                    this.state.todos.indexOf(todo) != index
-                                ),
-                              ],
-                            });
-                          }}
-                        >
-                          <Text style={styles.deleteButton}>
-                            <AntDesign
-                              name="minuscircleo"
-                              size={25}
-                              color="rgb(205, 80, 70)"
-                            />
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                      {index < this.state.todos.length - 1 ? (
-                        <View style={styles.break}></View>
-                      ) : null}
-                    </React.Fragment>
-                  );
-                })}
+                          </TouchableOpacity>
+                        </View>
+                        {index < this.state.todos.length - 1 ? (
+                          <View style={styles.break}></View>
+                        ) : null}
+                      </React.Fragment>
+                    );
+                  })}
+                </ScrollView>
               </View>
             </View>
             <Text style={styles.footer}>
