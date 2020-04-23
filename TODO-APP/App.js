@@ -6,10 +6,10 @@ import {
   ImageBackground,
   Dimensions,
   TextInput,
-  TouchableHighlight,
+  TouchableOpacity,
 } from "react-native";
 import image from "./assets/background.jpg";
-import { AntDesign } from "@expo/vector-icons";
+import { AntDesign, Ionicons } from "@expo/vector-icons";
 
 export default class App extends Component {
   constructor(props) {
@@ -19,9 +19,27 @@ export default class App extends Component {
   }
 
   state = {
-    todos: ["One", "Two", "Three", "Four"],
+    todos: [
+      {
+        text: "One",
+        complete: false,
+      },
+      {
+        text: "Two",
+        complete: true,
+      },
+      {
+        text: "Three",
+        complete: false,
+      },
+      {
+        text: "Four",
+        complete: false,
+      },
+    ],
     inputVal: "",
-    deleteColor: "#fff"
+    deleteColor: "#fff",
+    changing: "",
   };
 
   handleSubmit = () => {
@@ -29,12 +47,6 @@ export default class App extends Component {
     this.setState({
       todos: [...this.state.todos, newTodo],
       inputVal: "",
-    });
-  };
-
-  handleChange = (e) => {
-    this.setState({
-      inputVal: e,
     });
   };
 
@@ -57,10 +69,41 @@ export default class App extends Component {
                   return (
                     <React.Fragment key={index}>
                       <View style={styles.list}>
-                        <Text style={styles.todos}>{todo}</Text>
-                        <TouchableHighlight
-                          underlayColor="rgba(0, 0, 0, 0)"
-                          activeOpacity={0.4}
+                        <TouchableOpacity
+                          style={{ flex: 3 }}
+                          onPress={() => {
+                            var todos = this.state.todos;
+                            todos[index].complete = !todos[index].complete;
+                            this.setState({
+                              todos: todos,
+                            });
+                          }}
+                        >
+                          <View style={{ flexDirection: "row" }}>
+                            {todo.complete == true ? (
+                              <Text style={{ padding: 10 }}>
+                                <Ionicons
+                                  name="ios-checkmark-circle-outline"
+                                  size={25}
+                                  color="#888"
+                                />
+                              </Text>
+                            ) : null}
+
+                            <Text
+                              style={
+                                todo.complete == true
+                                  ? styles.completedTodo
+                                  : styles.todos
+                              }
+                            >
+                              {todo.text}
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                          activeOpacity={0.1}
                           onPress={() => {
                             this.setState({
                               todos: [
@@ -76,10 +119,10 @@ export default class App extends Component {
                             <AntDesign
                               name="minuscircleo"
                               size={25}
-                              color="green"
+                              color="rgb(205, 80, 70)"
                             />
                           </Text>
-                        </TouchableHighlight>
+                        </TouchableOpacity>
                       </View>
                       {index < this.state.todos.length - 1 ? (
                         <View style={styles.break}></View>
@@ -143,6 +186,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "#fff",
   },
+  completedTodo: {
+    padding: 10,
+    fontSize: 18,
+    color: "#888",
+  },
   break: {
     backgroundColor: "#fff",
     height: 1,
@@ -151,9 +199,11 @@ const styles = StyleSheet.create({
   },
   list: {
     flexDirection: "row",
-    justifyContent: "space-between",
   },
   deleteButton: {
+    padding: 10,
+  },
+  check: {
     padding: 10,
   },
 });
