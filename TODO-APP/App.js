@@ -38,17 +38,24 @@ export default class App extends Component {
       },
     ],
     inputVal: "",
-    deleteColor: "#fff",
-    changing: "",
   };
 
   handleSubmit = () => {
-    var newTodo = this.state.inputVal;
+    var newTodo = {
+      text: this.state.inputVal,
+      complete: false
+    }
     this.setState({
       todos: [...this.state.todos, newTodo],
       inputVal: "",
     });
   };
+
+  handleChange = e =>{
+    this.setState({
+      inputVal: e
+    })
+  }
 
   render() {
     return (
