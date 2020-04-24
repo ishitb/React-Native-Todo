@@ -20,6 +20,8 @@ export default class App extends Component {
     super(props);
     this.newTodo = React.createRef();
     this.handleSubmit = this.handleSubmit.bind(this);
+    
+
 
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   }
@@ -142,6 +144,7 @@ export default class App extends Component {
                               this.setState({
                                 todos: todos,
                               });
+                              dataAll.child(todos[index].key).set(todos[index])
                             }}
                           >
                             <View style={{ flexDirection: "row" }}>
