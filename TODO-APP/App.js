@@ -13,12 +13,13 @@ import image from "./assets/background.jpg";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import * as firebase from "firebase";
 
+var dataAll = firebase.database().ref("todos/");
+
 export default class App extends Component {
   constructor(props) {
     super(props);
     this.newTodo = React.createRef();
     this.handleSubmit = this.handleSubmit.bind(this);
-
 
 
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
@@ -35,7 +36,6 @@ export default class App extends Component {
     this.changeHeight(0)
     var self = this
     var countNew = 0
-    var dataAll = firebase.database().ref("todos/");
     dataAll.once("value").then(
       e => {
         e.forEach(
@@ -80,15 +80,20 @@ export default class App extends Component {
   };
 
   handleSubmit = () => {
+    var currLen = this.state.todos.length
     var newTodo = {
       text: this.state.inputVal,
       complete: false,
     };
     this.setState({
-      todos: [newTodo, ...this.state.todos],
+      todos: [ ...this.state.todos, newTodo ],
       inputVal: "",
     });
     this.changeHeight(this.state.todos.length + 1);
+
+    // STORING TO FIREBASE 
+    dataAll.child(currLen).set(newTodo)
+
   };
 
   handleChange = (e) => {
