@@ -21,16 +21,14 @@ export default class App extends Component {
     this.newTodo = React.createRef();
     this.handleSubmit = this.handleSubmit.bind(this);
 
-
-
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   }
 
   state = {
-    todos: [
-    ],
+    todos: [],
     inputVal: "",
     todosHeight: null,
+    netIssue: false
   };
 
   componentDidMount = () => {
@@ -81,20 +79,28 @@ export default class App extends Component {
   };
 
   handleSubmit = () => {
-    var currLen = this.state.todos.length
     var newTodo = {
       text: this.state.inputVal,
       complete: false,
     };
-    this.setState({
-      todos: [ ...this.state.todos, newTodo ],
-      inputVal: "",
-    });
-    this.changeHeight(this.state.todos.length + 1);
 
     // STORING TO FIREBASE 
-    dataAll.child(currLen).set(newTodo)
-
+    var newPush = dataAll.push()
+    var newKey = newPush.key
+    newTodo.key = newKey
+    newPush.set(newTodo).then(
+      () => {
+        this.setState({
+          todos: [ ...this.state.todos, newTodo ],
+          inputVal: "",
+        });
+        this.changeHeight(this.state.todos.length);
+      }
+    ).catch(
+      () => this.setState({
+        netIssue: true
+      })
+    )
   };
 
   handleChange = (e) => {
@@ -173,7 +179,11 @@ export default class App extends Component {
                                 ],
                               });
                               this.changeHeight(this.state.todos.length - 1);
-                              console.log(dataAll.child(index).remove())
+                              dataAll.child(todo.key).remove().catch(() => {
+                                this.setState({
+                                  netIssue: true
+                                })
+                              })
                             }}
                           >
                             <Text style={styles.deleteButton}>
