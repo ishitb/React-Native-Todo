@@ -7,84 +7,95 @@ import {
   Dimensions,
   TextInput,
   TouchableOpacity,
-  ScrollView
+  ScrollView,
 } from "react-native";
 import image from "./assets/background.jpg";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
+import * as firebase from "firebase";
 
 export default class App extends Component {
   constructor(props) {
     super(props);
     this.newTodo = React.createRef();
     this.handleSubmit = this.handleSubmit.bind(this);
+
+
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   }
 
   state = {
     todos: [
-      {
-        text: "One",
-        complete: false,
-      },
     ],
     inputVal: "",
-    todosHeight: null
+    todosHeight: null,
   };
 
-
   componentDidMount = () => {
-    this.changeHeight(this.state.todos.length)
-  }
+    this.changeHeight(0)
+    var self = this
+    var countNew = 0
+    var dataAll = firebase.database().ref("todos/");
+    dataAll.once("value").then(
+      e => {
+        e.forEach(
+          child => {
+            self.setState({
+              todos: [...self.state.todos, child.val()]
+            })
+          }
+        )
+        this.changeHeight(this.state.todos.length + countNew);
+      }
+    )
+  };
 
   changeHeight = (noOfTodos) => {
     // console.log(noOfTodos)
-    if(noOfTodos == 1)
+    if (noOfTodos == 1)
       this.setState({
-        todosHeight: 42.80701700846354
-      })
-    else if(noOfTodos == 2) {
+        todosHeight: 42.80701700846354,
+      });
+    else if (noOfTodos == 2) {
       this.setState({
-        todosHeight: 85.61403401692708
-      })
+        todosHeight: 85.61403401692708,
+      });
+    } else if (noOfTodos == 3) {
+      this.setState({
+        todosHeight: 128.42105102539062,
+      });
+    } else if (noOfTodos == 4) {
+      this.setState({
+        todosHeight: 171.22806803385416,
+      });
+    } else if (noOfTodos > 4) {
+      this.setState({
+        todosHeight: 200,
+      });
+    } else if (noOfTodos == 0) {
+      this.setState({
+        todosHeight: 0,
+      });
     }
-    else if(noOfTodos == 3) {
-      this.setState({
-        todosHeight: 128.42105102539062
-      })
-    }
-    else if(noOfTodos == 4) {
-      this.setState({
-        todosHeight: 171.22806803385416
-      })
-    }
-    else if(noOfTodos > 4) {
-      this.setState({
-        todosHeight: 200
-      })
-    }
-    else if(noOfTodos == 0) {
-      this.setState({
-        todosHeight: 0
-      })
-    }
-  }
+  };
 
   handleSubmit = () => {
     var newTodo = {
       text: this.state.inputVal,
-      complete: false
-    }
+      complete: false,
+    };
     this.setState({
-      todos: [ newTodo, ...this.state.todos],
+      todos: [newTodo, ...this.state.todos],
       inputVal: "",
     });
-    this.changeHeight(this.state.todos.length + 1)
+    this.changeHeight(this.state.todos.length + 1);
   };
 
-  handleChange = e =>{
+  handleChange = (e) => {
     this.setState({
-      inputVal: e
-    })
-  }
+      inputVal: e,
+    });
+  };
 
   render() {
     return (
@@ -100,7 +111,12 @@ export default class App extends Component {
                 onChangeText={this.handleChange}
                 onSubmitEditing={this.handleSubmit}
               />
-              <View style={{ ...styles.presentTodos, height: this.state.todosHeight }}>
+              <View
+                style={{
+                  ...styles.presentTodos,
+                  height: this.state.todosHeight,
+                }}
+              >
                 <ScrollView>
                   {this.state.todos.map((todo, index) => {
                     return (
@@ -126,7 +142,7 @@ export default class App extends Component {
                                   />
                                 </Text>
                               ) : null}
-  
+
                               <Text
                                 style={
                                   todo.complete == true
@@ -138,7 +154,7 @@ export default class App extends Component {
                               </Text>
                             </View>
                           </TouchableOpacity>
-  
+
                           <TouchableOpacity
                             activeOpacity={0.1}
                             onPress={() => {
@@ -150,7 +166,7 @@ export default class App extends Component {
                                   ),
                                 ],
                               });
-                              this.changeHeight(this.state.todos.length - 1)
+                              this.changeHeight(this.state.todos.length - 1);
                             }}
                           >
                             <Text style={styles.deleteButton}>
