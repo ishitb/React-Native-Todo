@@ -22,6 +22,7 @@ export default class App extends Component {
     this.handleSubmit = this.handleSubmit.bind(this);
 
 
+
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   }
 
@@ -172,6 +173,7 @@ export default class App extends Component {
                                 ],
                               });
                               this.changeHeight(this.state.todos.length - 1);
+                              console.log(dataAll.child(index).remove())
                             }}
                           >
                             <Text style={styles.deleteButton}>
