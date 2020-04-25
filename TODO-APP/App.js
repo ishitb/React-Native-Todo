@@ -40,12 +40,12 @@ export default class App extends Component {
       refreshing: true
     })
 
-    // wait(2000).then(() => this.setState({
-    //   refreshing: false
-    // }));
+    this.load()
+
     setTimeout(() => {
       this.setState({
-        refreshing: false
+        refreshing: false,
+        netIssue: false
       })
     }, 1000)
   }
@@ -122,7 +122,7 @@ export default class App extends Component {
       })
       .catch(() =>
         this.setState({
-          netIssue: true,
+          netIssue: true
         })
       );
   };
@@ -138,17 +138,6 @@ export default class App extends Component {
       <View style={styles.container}>
         <ImageBackground source={image} style={styles.backg}>
           <View style={styles.mainApp}>
-            <ScrollView
-              contentContainerStyle={{
-                flex: 1,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-              style={{ width: Dimensions.get("screen").width }}
-              refreshControl={
-                <RefreshControl refreshing={this.state.refreshing} />
-              }
-            >
               {this.state.netIssue == true ? (
                 <View
                   style={{
@@ -282,7 +271,7 @@ export default class App extends Component {
               <Text style={styles.footer}>
                 Notes App with Firebase Integration
               </Text>
-            </ScrollView>
+            
           </View>
         </ImageBackground>
       </View>
