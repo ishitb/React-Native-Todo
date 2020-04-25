@@ -31,24 +31,24 @@ export default class App extends Component {
     todos: [],
     inputVal: "",
     todosHeight: null,
-    netIssue: true,
+    netIssue: false,
     refreshing: false
   };
 
-  // onRefresh = () => {
-  //   this.setState({
-  //     refreshing: true
-  //   })
+  onRefresh = () => {
+    this.setState({
+      refreshing: true
+    })
 
-  //   // wait(2000).then(() => this.setState({
-  //   //   refreshing: false
-  //   // }));
-  //   setTimeout(() => {
-  //     this.setState({
-  //       refreshing: false
-  //     })
-  //   }, 1000)
-  // }
+    // wait(2000).then(() => this.setState({
+    //   refreshing: false
+    // }));
+    setTimeout(() => {
+      this.setState({
+        refreshing: false
+      })
+    }, 1000)
+  }
 
   componentDidMount = () => {
     this.changeHeight(0);
@@ -146,7 +146,7 @@ export default class App extends Component {
               }}
               style={{ width: Dimensions.get("screen").width }}
               refreshControl={
-                <RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />
+                <RefreshControl refreshing={this.state.refreshing} />
               }
             >
               {this.state.netIssue == true ? (
@@ -163,10 +163,7 @@ export default class App extends Component {
                   </Text>
                   <TouchableOpacity
                     style={{ flex: 1 }}
-                    onPress={() => {
-                      console.log("hEY");
-                      RNRestart.Restart();
-                    }}
+                    onPress={this.onRefresh}
                   >
                     <Text style={{ height: 42.8, textAlignVertical: "center" }}>
                       <AntDesign name="reload1" size={30} color="#fff" />
