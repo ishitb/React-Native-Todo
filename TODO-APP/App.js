@@ -24,7 +24,7 @@ export default class App extends Component {
 
     const firebaseConfig = keys;
 
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
   }
 
   state = {
@@ -51,6 +51,7 @@ export default class App extends Component {
   }
 
   componentDidMount = () => {
+    if (!firebase.apps.length) firebase.initializeApp(keys);
     this.changeHeight(0);
     this.load();
   };
