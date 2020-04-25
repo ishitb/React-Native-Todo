@@ -8,20 +8,21 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  RefreshControl,
 } from "react-native";
 import image from "./assets/background.jpg";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import * as firebase from "firebase";
-
-var dataAll = firebase.database().ref("todos/");
+import keys from "./auth.json";
+import RNRestart from "react-native-restart";
 
 export default class App extends Component {
   constructor(props) {
     super(props);
     this.newTodo = React.createRef();
     this.handleSubmit = this.handleSubmit.bind(this);
-    
 
+    const firebaseConfig = keys;
 
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   }
@@ -30,25 +31,44 @@ export default class App extends Component {
     todos: [],
     inputVal: "",
     todosHeight: null,
-    netIssue: false
+    netIssue: true,
+    refreshing: false
   };
 
+  // onRefresh = () => {
+  //   this.setState({
+  //     refreshing: true
+  //   })
+
+  //   // wait(2000).then(() => this.setState({
+  //   //   refreshing: false
+  //   // }));
+  //   setTimeout(() => {
+  //     this.setState({
+  //       refreshing: false
+  //     })
+  //   }, 1000)
+  // }
+
   componentDidMount = () => {
-    this.changeHeight(0)
-    var self = this
-    var countNew = 0
-    dataAll.once("value").then(
-      e => {
-        e.forEach(
-          child => {
-            self.setState({
-              todos: [...self.state.todos, child.val()]
-            })
-          }
-        )
-        this.changeHeight(this.state.todos.length + countNew);
-      }
-    )
+    this.changeHeight(0);
+    this.load();
+  };
+
+  load = () => {
+    var dataAll = firebase.database().ref("todos/");
+    var self = this;
+    // dataAll.once('value', snapshot => {
+    //   console.log(snapshot.val())
+    // })
+    dataAll.once("value").then((e) => {
+      e.forEach((child) => {
+        self.setState({
+          todos: [...self.state.todos, child.val()],
+        });
+      });
+      this.changeHeight(this.state.todos.length);
+    });
   };
 
   changeHeight = (noOfTodos) => {
@@ -86,23 +106,25 @@ export default class App extends Component {
       complete: false,
     };
 
-    // STORING TO FIREBASE 
-    var newPush = dataAll.push()
-    var newKey = newPush.key
-    newTodo.key = newKey
-    newPush.set(newTodo).then(
-      () => {
+    // STORING TO FIREBASE
+    var dataAll = firebase.database().ref("todos/");
+    var newPush = dataAll.push();
+    var newKey = newPush.key;
+    newTodo.key = newKey;
+    newPush
+      .set(newTodo)
+      .then(() => {
         this.setState({
-          todos: [ ...this.state.todos, newTodo ],
+          todos: [...this.state.todos, newTodo],
           inputVal: "",
         });
         this.changeHeight(this.state.todos.length);
-      }
-    ).catch(
-      () => this.setState({
-        netIssue: true
       })
-    )
+      .catch(() =>
+        this.setState({
+          netIssue: true,
+        })
+      );
   };
 
   handleChange = (e) => {
@@ -116,100 +138,154 @@ export default class App extends Component {
       <View style={styles.container}>
         <ImageBackground source={image} style={styles.backg}>
           <View style={styles.mainApp}>
-            <View>
-              <TextInput
-                style={styles.input}
-                placeholder="Add New Todo"
-                // ref={this.newTodo}
-                value={this.state.inputVal}
-                onChangeText={this.handleChange}
-                onSubmitEditing={this.handleSubmit}
-              />
-              <View
-                style={{
-                  ...styles.presentTodos,
-                  height: this.state.todosHeight,
-                }}
-              >
-                <ScrollView>
-                  {this.state.todos.map((todo, index) => {
-                    return (
-                      <React.Fragment key={index}>
-                        <View style={styles.list}>
-                          <TouchableOpacity
-                            style={{ flex: 3 }}
-                            onPress={() => {
-                              var todos = this.state.todos;
-                              todos[index].complete = !todos[index].complete;
-                              this.setState({
-                                todos: todos,
-                              });
-                              dataAll.child(todos[index].key).set(todos[index])
-                            }}
-                          >
-                            <View style={{ flexDirection: "row" }}>
-                              {todo.complete == true ? (
-                                <Text style={{ padding: 10 }}>
-                                  <Ionicons
-                                    name="ios-checkmark-circle-outline"
+            <ScrollView
+              contentContainerStyle={{
+                flex: 1,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              style={{ width: Dimensions.get("screen").width }}
+              refreshControl={
+                <RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />
+              }
+            >
+              {this.state.netIssue == true ? (
+                <View
+                  style={{
+                    ...styles.presentTodos,
+                    height: 42.8,
+                    width: 350,
+                    flexDirection: "row",
+                  }}
+                >
+                  <Text style={styles.network}>
+                    Please check your Network!{" "}
+                  </Text>
+                  <TouchableOpacity
+                    style={{ flex: 1 }}
+                    onPress={() => {
+                      console.log("hEY");
+                      RNRestart.Restart();
+                    }}
+                  >
+                    <Text style={{ height: 42.8, textAlignVertical: "center" }}>
+                      <AntDesign name="reload1" size={30} color="#fff" />
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <View>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Add New Todo"
+                    // ref={this.newTodo}
+                    value={this.state.inputVal}
+                    onChangeText={this.handleChange}
+                    onSubmitEditing={this.handleSubmit}
+                  />
+
+                  <View
+                    style={{
+                      ...styles.presentTodos,
+                      height: this.state.todosHeight,
+                    }}
+                  >
+                    <ScrollView>
+                      {this.state.todos.map((todo, index) => {
+                        return (
+                          <React.Fragment key={index}>
+                            <View style={styles.list}>
+                              <TouchableOpacity
+                                style={{ flex: 3 }}
+                                onPress={() => {
+                                  var todos = this.state.todos;
+                                  var dataAll = firebase
+                                    .database()
+                                    .ref("todos/");
+                                  todos[index].complete = !todos[index]
+                                    .complete;
+                                  this.setState({
+                                    todos: todos,
+                                  });
+                                  dataAll
+                                    .child(todos[index].key)
+                                    .set(todos[index]);
+                                }}
+                              >
+                                <View style={{ flexDirection: "row" }}>
+                                  {todo.complete == true ? (
+                                    <Text style={{ padding: 10 }}>
+                                      <Ionicons
+                                        name="ios-checkmark-circle-outline"
+                                        size={25}
+                                        color="#888"
+                                      />
+                                    </Text>
+                                  ) : null}
+
+                                  <Text
+                                    style={
+                                      todo.complete == true
+                                        ? styles.completedTodo
+                                        : styles.todos
+                                    }
+                                  >
+                                    {todo.text}
+                                  </Text>
+                                </View>
+                              </TouchableOpacity>
+
+                              <TouchableOpacity
+                                activeOpacity={0.1}
+                                onPress={() => {
+                                  this.setState({
+                                    todos: [
+                                      ...this.state.todos.filter(
+                                        (todo) =>
+                                          this.state.todos.indexOf(todo) !=
+                                          index
+                                      ),
+                                    ],
+                                  });
+                                  var dataAll = firebase
+                                    .database()
+                                    .ref("todos/");
+                                  this.changeHeight(
+                                    this.state.todos.length - 1
+                                  );
+                                  dataAll
+                                    .child(todo.key)
+                                    .remove()
+                                    .catch(() => {
+                                      this.setState({
+                                        netIssue: true,
+                                      });
+                                    });
+                                }}
+                              >
+                                <Text style={styles.deleteButton}>
+                                  <AntDesign
+                                    name="minuscircleo"
                                     size={25}
-                                    color="#888"
+                                    color="rgb(205, 80, 70)"
                                   />
                                 </Text>
-                              ) : null}
-
-                              <Text
-                                style={
-                                  todo.complete == true
-                                    ? styles.completedTodo
-                                    : styles.todos
-                                }
-                              >
-                                {todo.text}
-                              </Text>
+                              </TouchableOpacity>
                             </View>
-                          </TouchableOpacity>
-
-                          <TouchableOpacity
-                            activeOpacity={0.1}
-                            onPress={() => {
-                              this.setState({
-                                todos: [
-                                  ...this.state.todos.filter(
-                                    (todo) =>
-                                      this.state.todos.indexOf(todo) != index
-                                  ),
-                                ],
-                              });
-                              this.changeHeight(this.state.todos.length - 1);
-                              dataAll.child(todo.key).remove().catch(() => {
-                                this.setState({
-                                  netIssue: true
-                                })
-                              })
-                            }}
-                          >
-                            <Text style={styles.deleteButton}>
-                              <AntDesign
-                                name="minuscircleo"
-                                size={25}
-                                color="rgb(205, 80, 70)"
-                              />
-                            </Text>
-                          </TouchableOpacity>
-                        </View>
-                        {index < this.state.todos.length - 1 ? (
-                          <View style={styles.break}></View>
-                        ) : null}
-                      </React.Fragment>
-                    );
-                  })}
-                </ScrollView>
-              </View>
-            </View>
-            <Text style={styles.footer}>
-              Notes App with Firebase Integration
-            </Text>
+                            {index < this.state.todos.length - 1 ? (
+                              <View style={styles.break}></View>
+                            ) : null}
+                          </React.Fragment>
+                        );
+                      })}
+                    </ScrollView>
+                  </View>
+                </View>
+              )}
+              <Text style={styles.footer}>
+                Notes App with Firebase Integration
+              </Text>
+            </ScrollView>
           </View>
         </ImageBackground>
       </View>
@@ -280,5 +356,13 @@ const styles = StyleSheet.create({
   },
   check: {
     padding: 10,
+  },
+  network: {
+    color: "#f00",
+    textAlign: "center",
+    height: 42.8,
+    textAlignVertical: "center",
+    fontSize: 22,
+    flex: 5,
   },
 });
